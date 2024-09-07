@@ -1,0 +1,50 @@
+#menubar {
+    position: fixed; display: flex;
+    width: 100%; height: 25px;
+    top: 0;
+}
+#menubar > * {
+    flex: auto;
+    text-align: center;
+    font-size: 14px;
+    line-height: 25px;
+}
+#menubar > *:hover {
+    background-color: #2D2E2E;
+}
+
+#sidebar {
+    position: fixed; display: flex;
+    width: 250px; height: calc(100% - 25px);
+    background-color: #181818;
+    color: #CCCCCC;
+    overflow: auto;
+    font-size: 13px;
+}
+.diskentry-box {
+    display: flex; flex-direction: column;
+}
+.diskentry {
+    display: flex;
+    padding: 3px;
+}
+.diskentry img {
+    filter: invert(1)
+}
+.diskentry:hover {
+    background-color: #2A2D2E;
+}
+
+.tab {
+    font-size: 13px;
+    border: 1px solid gray;
+}
+
+.contextmenu {
+    display: flex; flex-direction: column;
+    background-color: #1F1F1F;
+    border: 1px solid #454545;
+}
+.contextmenu > *:hover {
+    background-color: #0078D4;
+}
