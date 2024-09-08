@@ -19,15 +19,18 @@ fn main() {
 }
 
 #[command]
-async fn open_folder(window: Window) -> Option<(PathBuf, Vec<DiskEntry>)> {
+async fn open_folder(window: Window) -> Result<Option<(PathBuf, Vec<DiskEntry>)>, String> {
   let filepath = FileDialogBuilder::new()
     .set_parent(&window)
     .pick_folder();
 
   match filepath {
     Some(path) => {
-      Some((path.clone(), read_dir(path, true).unwrap()))
+      match read_dir(&path, true) {
+        Ok(s) => Ok(Some((path.clone(), s))),
+        Err(e) => Err(e.to_string())
+      }
     },
-    None => None
+    None => Ok(None)
   }
 }

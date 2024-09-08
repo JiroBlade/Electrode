@@ -20,12 +20,11 @@ function Root(props: RootProps) {
 }
 
 interface ListProps extends React.ComponentProps<'div'> {
-    dir: 'row' | 'column'
+    
 }
-function List(props: ListProps) {
-    const ctx = React.useContext(TabsContext)
-    return <div style={{display: 'flex', flexDirection: props.dir, overflow: 'auto'}} {...props}>{props.children}</div>
-}
+const List = React.forwardRef((props: ListProps, ref: React.Ref<HTMLDivElement>) => {
+    return <div role='tabs-list' ref={ref} {...props}>{props.children}</div>
+})
 
 export interface Props extends React.ComponentProps<'div'> {
     value: number

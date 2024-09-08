@@ -5,8 +5,7 @@ import styles from './styles/styles.module.css'
 import Image from 'next/image'
 
 import { invoke } from '@tauri-apps/api/tauri'
-import { useContextMenu, ContextMenu } from './modules/contextmenu'
-import * as Tabs from './modules/tabs'
+import { CM, G, Tabs } from './modules/mod'
 import { watch, RawEvent, RawEventKind } from './modules/watch'
 
 type DiskEntry = { path: string, name: string, children?: DiskEntry[] }
@@ -16,6 +15,7 @@ export default function Page() {
     const [diskEntries, setDiskEntries] = React.useState<DiskEntryList>(['', []])
     const [dirEvent, setDirEvent] = React.useState<RawEvent[]>([])
     const [tabs, setTabs] = React.useState<DiskEntry[]>([])
+    const offset = 200
 
     React.useEffect(() => {
         if(diskEntries != null) {
@@ -35,11 +35,13 @@ export default function Page() {
     })
 
     function openFolder() {
-        invoke<DiskEntryList>('open_folder').then(res => {
-            if(res != null) {
-                setDiskEntries(res)
-            }
-        })
+        invoke<DiskEntryList>('open_folder')
+            .then(res => {
+                if(res != null) {
+                    setDiskEntries(res)
+                }
+            })
+            .catch(error => alert(error))
     }
 
     interface DiskEntryProps extends Tabs.Props {
@@ -48,35 +50,30 @@ export default function Page() {
     function DiskEntry(props: DiskEntryProps) {
         const { de, value } = props
         const [flag, setFlag] = React.useState(false)
-        const {toggle, CMRef, onCM} = useContextMenu()
+        const {toggle, CMRef, onCM} = CM.useContextMenu()
         const isFolder = de.children != null
+        const diskentryRef = React.useRef<HTMLDivElement>()
 
         function DiskEntryCM() {
             return(
-                <ContextMenu ref={CMRef} pos={{x: toggle.x, y: toggle.y}} className={styles.contextmenu}>
+                <CM.Root ref={CMRef} pos={{x: toggle.x, y: toggle.y}} className={styles.contextmenu}>
                     <div role='button'>Delete</div>
                     <div role='button'>Rename</div>
-                </ContextMenu>
-            )
-        }
-
-        function DiskEntryName() {
-            return(
-                <div className={styles.diskentry} onClick={() => setFlag(!flag)}>
-                    <Image src={isFolder ? '/folder.png': 'file.png'} width={18} height={18} alt=''/> {de.name}
-                </div>
+                </CM.Root>
             )
         }
 
         return(
             <Tabs.Trigger value={value} title={de.path} className={styles['diskentry-box']}
             onContextMenu={onCM}
-            onClick={e => {
-                if(!isFolder && !tabs.includes({path: e.currentTarget.getAttribute('title'), name: e.currentTarget.textContent})) {
-                    setTabs([...tabs, {path: e.currentTarget.getAttribute('title'), name: e.currentTarget.textContent}])
+            onClick={() => {
+                if(!isFolder && !tabs.includes({path: de.path, name: de.name})) {
+                    setTabs([...tabs, {path: de.path, name: de.name}])
                 }
             }}>
-                <DiskEntryName/>
+                <div ref={diskentryRef} className={styles.diskentry} onClick={() => setFlag(!flag)}>
+                    {de.name}
+                </div>
                 {flag ? de.children?.map((v, i) => { return <DiskEntry key={i} de={v} value={i}/> } ) : <></>}
                 {createPortal(toggle.flag && <DiskEntryCM/>, document.body)}
             </Tabs.Trigger>
@@ -86,20 +83,26 @@ export default function Page() {
     return(
         <>
             <div id={styles.menubar}>
-                <div role='button' onClick={openFolder}>Open Folder...</div>
-                <div role='button' onClick={() => console.log(tabs)}>Test</div>
-                <div role='button' onClick={() => alert('Electrode version: 0.1.0')}>About</div>
+                <G.Button onClick={openFolder}>Open Folder...</G.Button>
+                <G.Button onClick={() => console.log(tabs)}>Test</G.Button>
+                <G.Button onClick={() => alert('Electrode version: 0.1.0')}>About</G.Button>
             </div>
-            <Tabs.Root defaultValue={0} style={{marginTop: '25px'}}>
-                <Tabs.List dir='column' id={styles.sidebar}>
-                    {diskEntries[1].map((v, i) => <DiskEntry key={i} de={v} value={i}/>)}
-                </Tabs.List>
-                <div style={{marginLeft: '250px'}}>
-                    <Tabs.List dir='row'>
+            <Tabs.Root defaultValue={0} id={styles.workspace}>
+                <G.ResizablePanel initsize={offset} handle={1} id={styles.sidebar}>
+                    <div role='label' title={diskEntries[0]}>{diskEntries[0].split('\\').pop()}</div>
+                    <Tabs.List id={styles['diskentry-list']}>
+                        {diskEntries[1].map((v, i) => <DiskEntry key={i} de={v} value={i}/>)}
+                    </Tabs.List>
+                </G.ResizablePanel>
+
+                <G.ResizablePanel handle={0} id={styles.editor}>
+                    <Tabs.List id={styles['tabs-list']}>
                         {tabs.map((v, i) => <Tabs.Trigger key={i} value={i} title={v.path} className={styles.tab}>{v.name}</Tabs.Trigger>)}
                     </Tabs.List>
-                    {tabs.map((v, i) => <Tabs.Content key={i} value={i}>{i}</Tabs.Content>)}
-                </div>
+                    <div style={{marginTop: '40px'}}>
+                        {tabs.map((v, i) => <Tabs.Content key={i} value={i}>{i}</Tabs.Content>)}  
+                    </div>
+                </G.ResizablePanel>
             </Tabs.Root>
         </>
     )

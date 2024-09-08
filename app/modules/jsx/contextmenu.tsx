@@ -29,7 +29,7 @@ function useContextMenu() {
 interface ContextMenuProps extends React.ComponentProps<'div'> {
     pos: {x: number, y: number}
 }
-const ContextMenu = React.forwardRef((props: ContextMenuProps, ref: React.Ref<HTMLDivElement>) => {
+const Root = React.forwardRef((props: ContextMenuProps, ref: React.Ref<HTMLDivElement>) => {
     return(
         <div role='backdrop'>
             <div role='contextmenu-box' ref={ref} style={{left: props.pos.x, top: props.pos.y}}>
@@ -41,4 +41,4 @@ const ContextMenu = React.forwardRef((props: ContextMenuProps, ref: React.Ref<HT
     )
 })
 
-export { useContextMenu, ContextMenu }
+export { useContextMenu, Root }

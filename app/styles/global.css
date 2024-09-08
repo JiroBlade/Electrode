@@ -13,11 +13,23 @@ body {
     width: 100%; height: 100%;
 }
 
-[role=button] {
+[role=button], [role=label] {
     user-select: none;
 }
 
 [role=contextmenu-box] {
     position: absolute;
     font-size: 14px;
+}
+
+[role=sash] {
+    position: absolute;
+    width: 5px; height: calc(100vh - 25px);
+}
+[role=sash]:hover {
+    cursor: col-resize;
+}
+
+[role=tabs-list] {
+    display: flex;
 }
